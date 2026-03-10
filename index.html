@@ -1,0 +1,42 @@
+<html lang="en">
+<!--header-->
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>payflo Cash Register Application</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<!--body-->
+
+<body>
+    <!--body header-->
+    <div id="header">
+        <img id="banner" src="assets\banner.png" alt="img not found!">
+        <h1 id="title">Cash Register</h1>
+        <p id="instructions">a simple yet effective register solution, please feel free to let me know how we can
+            improve our application!
+        </p>
+    </div>
+    <!--body application-->
+    <!--body functional-->
+    <div id="register">
+        <label id="input-label">Enter payment amount:</label>
+        <input id="input" type="number"></input>
+        <button id="purchase-btn" type="submit">Purchase</button>
+        <p>Total: $<span id="due">3.26</span></p>
+
+        <!--register state-->
+        <label id="change-label">Change in register:</label>
+        <ul id="change">
+
+        </ul>
+    </div>
+    <div id="result">
+        <p id="change-due"></p>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
