@@ -17,23 +17,27 @@ let cid = [
     ['ONE HUNDRED', 100]
 ];
 
-const moneyValue = [
-    ['PENNY', .01],
-    ['NICKEL', .05],
-    ['DIME', .1],
-    ['QUARTER', .25],
-    ['ONE', 1],
-    ['FIVE', 5],
-    ['TEN', 10],
-    ['TWENTY', 20],
-    ['ONE HUNDRED', 100]
-];
+const moneyValue = [100, 20, 10, 5, 1, 0.25, 0.1, 0.05, 0.01];
+
+// break down a number into moneyValue components
+const denom = (amount) => {
+    const denominations = moneyValue;
+    const result = {};
+
+    for (let d of denominations) {
+        const count = Math.floor(amount / d);
+        result[d] = count;
+        amount = amount % d;
+    }
+    return toString(result);
+}
 
 // create a register object as a class that has a total and change
 class Register {
     constructor() {
         this.total = price;
         this.cash = cid;
+        this.status = "CLOSED"
     }
 
     // draw the CID elements into the cash in drawer element and update total due
@@ -46,14 +50,13 @@ class Register {
         }
     }
 
-    deposit(amount) {
-
+    totalCash() {
+        let acc = 0;
+        for (let i = 0; i < this.cash.length; i++) {
+            acc += this.cash[i][1];
+        }
+        return acc.toFixed(2);
     }
-
-    withdraw(amount) {
-
-    }
-
 }
 
 const reg = new Register();
@@ -62,5 +65,18 @@ reg.update();
 
 // add event listener to purchase button with callback for functionality
 purchaseBtn.addEventListener("click", () => {
-    change.textContent = (reg.total - input.value).toFixed(2);
+    if (input.value < price) {
+        alert("Customer does not have enough money to purchase the item");
+        input.value = null;
+    } else if (input.value == price) {
+        change.textContent = "No change due - customer paid with exact cash";
+        input.value = null;
+    } else if(input.value > price){
+        let result = ""
+        reg.status = "OPEN"
+        result += `Status: ${reg.status}`;
+        result += denom(input.value - price);
+        change.textContent = result;
+        input.value = null;
+    }
 });
