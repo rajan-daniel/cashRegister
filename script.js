@@ -30,17 +30,33 @@ const moneyValue = [
 ];
 
 // break down a number into moneyValue components
-const denom = (amount) => {
+const denom = (amount, drawer) => {
     let result = "";
+    let changeArray = [];
 
     for (let [name, value] of moneyValue) {
-        const count = Math.floor(amount / value);
+        const drawerIndex = drawer.findIndex(d => d[0] === name);
+        let available = drawer[drawerIndex][1];
+
+        let count = Math.min(Math.floor(amount / value), Math.floor(available / value));
+
         if (count > 0) {
-            result += `\n${name}: ${count}`;
-            amount = Math.round((amount - count * value) * 100) / 100;
+            let totalUsed = Math.round(count * value * 100) / 100;
+
+            drawer[drawerIndex][1] = Math.round((drawer[drawerIndex][1] - totalUsed) * 100) / 100;
+
+            amount = Math.round((amount - totalUsed) * 100) / 100;
+
+            result += `<br>${name}: ${count}`;
+            changeArray.push([name, totalUsed]);
         }
     }
-    return result;
+
+    if (amount > 0) {
+        return { result: "INSUFFICIENT_FUNDS", changeArray: [] };
+    }
+
+    return { result, changeArray };
 }
 
 // create a register object as a class that has a total and change
@@ -67,7 +83,7 @@ class Register {
         for (let i = 0; i < this.cash.length; i++) {
             acc += this.cash[i][1];
         }
-        return acc.toFixed(2);
+        return Math.round(acc * 100) / 100;
     }
 }
 
@@ -77,29 +93,41 @@ reg.update();
 
 // add event listener to purchase button with callback for functionality
 purchaseBtn.addEventListener("click", () => {
-    const changeDue = Math.round((input.value - price) * 100) / 100;
-    const cashInDrawer = reg.totalCash();
-    let result = ""
+    const cashPaid = parseFloat(input.value);
+    const changeDue = Math.round((cashPaid - price) * 100) / 100;
+    let result = "";
 
-    if (cashInDrawer < changeDue) {
-        reg.status = "INSUFFICIENT_FUNDS";
-    } else if (cashInDrawer == changeDue) {
-        reg.status = "CLOSED";
-    } else if (cashInDrawer > changeDue) {
-        reg.status = "OPEN";
-    }
-
-    if (input.value < reg.price) {
+    if (changeDue < 0) {
         alert("Customer does not have enough money to purchase the item");
         reg.update();
         input.value = null;
-    } else if (input.value = reg.price) {
-        result += "No change due - customer paid with exact cash";
-        change.textContent = result;
-        input.value = null;
-    } else if(input.value > reg.price){
-        result += denom(input.value - reg.price)
-        change.textContent = result;
-        input.value = null;
+        return;
     }
+
+    const totalDrawer = parseFloat(reg.totalCash());
+
+    if (totalDrawer < changeDue) {
+        reg.status = "INSUFFICIENT_FUNDS";
+        result = "INSUFFICIENT_FUNDS";
+        change.innerHTML = result;
+    } else if (totalDrawer === changeDue) {
+        reg.status = "CLOSED";
+
+        let allChange = reg.cash.map(([name, val]) => [name, val]);
+        result = allChange.map(([name, val]) => `${name}: ${val.toFixed(2)}`).join("<br>");
+        reg.cash = reg.cash.map(([name, val]) => [name, 0]);
+        change.innerHTML = result;
+    } else {
+        reg.status = "OPEN";
+        const { result: changeStr } = denom(changeDue, reg.cash);
+        if (changeStr === "INSUFFICIENT_FUNDS") {
+            reg.status = "INSUFFICIENT_FUNDS";
+            change.innerHTML = "INSUFFICIENT_FUNDS";
+        } else {
+            change.innerHTML = `Status: ${reg.status}${changeStr}`;
+        }
+    }
+
+    reg.update();
+    input.value = null;
 });
