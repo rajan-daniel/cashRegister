@@ -17,32 +17,44 @@ let cid = [
     ['ONE HUNDRED', 100]
 ];
 
-const moneyValue = [100, 20, 10, 5, 1, 0.25, 0.1, 0.05, 0.01];
+const moneyValue = [
+    ["ONE HUNDRED", 100],
+    ["TWENTY", 20],
+    ["TEN", 10],
+    ["FIVE", 5],
+    ["ONE", 1],
+    ["QUARTER", 0.25],
+    ["DIME", 0.10],
+    ["NICKEL", 0.05],
+    ["PENNY", 0.01]
+];
 
 // break down a number into moneyValue components
 const denom = (amount) => {
-    const denominations = moneyValue;
-    const result = {};
+    let result = "";
 
-    for (let d of denominations) {
-        const count = Math.floor(amount / d);
-        result[d] = count;
-        amount = amount % d;
+    for (let [name, value] of moneyValue) {
+        const count = Math.floor(amount / value);
+        if (count > 0) {
+            result += `\n${name}: ${count}`;
+            amount = Math.round((amount - count * value) * 100) / 100;
+        }
     }
-    return toString(result);
+    return result;
 }
 
 // create a register object as a class that has a total and change
 class Register {
     constructor() {
-        this.total = price;
+        this.price = price;
         this.cash = cid;
         this.status = "CLOSED"
     }
 
     // draw the CID elements into the cash in drawer element and update total due
     update() {
-        due.textContent = this.total;
+        drawerCash.innerHTML = "";
+        due.textContent = this.price;
         for (let i = 0; i < this.cash.length; i++) {
             const li = document.createElement('li');
             li.textContent = `${this.cash[i][0]}: $${this.cash[i][1]}`;
@@ -65,17 +77,28 @@ reg.update();
 
 // add event listener to purchase button with callback for functionality
 purchaseBtn.addEventListener("click", () => {
-    if (input.value < price) {
+    const changeDue = Math.round((input.value - price) * 100) / 100;
+    const cashInDrawer = reg.totalCash();
+    let result = ""
+
+    if (cashInDrawer < changeDue) {
+        reg.status = "INSUFFICIENT_FUNDS";
+    } else if (cashInDrawer == changeDue) {
+        reg.status = "CLOSED";
+    } else if (cashInDrawer > changeDue) {
+        reg.status = "OPEN";
+    }
+
+    if (input.value < reg.price) {
         alert("Customer does not have enough money to purchase the item");
+        reg.update();
         input.value = null;
-    } else if (input.value == price) {
-        change.textContent = "No change due - customer paid with exact cash";
+    } else if (input.value = reg.price) {
+        result += "No change due - customer paid with exact cash";
+        change.textContent = result;
         input.value = null;
-    } else if(input.value > price){
-        let result = ""
-        reg.status = "OPEN"
-        result += `Status: ${reg.status}`;
-        result += denom(input.value - price);
+    } else if(input.value > reg.price){
+        result += denom(input.value - reg.price)
         change.textContent = result;
         input.value = null;
     }
