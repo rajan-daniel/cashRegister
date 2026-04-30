@@ -81,9 +81,9 @@ const getChange = (changeDue, cid) => {
         if (unitValue <= remainingChange && unitInDrawer > 0) {
             let amountFromUnit = 0;
 
-            while (remainingChange >= unitValue && unitInDrawer > 0) {
-                remainingChange = (remainingChange - unitValue).toFixed(2);
-                unitInDrawer -= unitValue;
+            while (remainingChange >= unitValue && cid[i][1] > 0) {
+                remainingChange = parseFloat((remainingChange - unitValue).toFixed(2));
+                cid[i][1] -= unitValue;
                 amountFromUnit += unitValue;
             }
 
